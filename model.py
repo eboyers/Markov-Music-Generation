@@ -1,6 +1,6 @@
 import random
-from collections import defaultdict, Counter
 
+from collections import defaultdict, Counter
 from theory import MusicTheory
 
 class MarkovModel:    
@@ -12,7 +12,6 @@ class MarkovModel:
         self.order = order
         self.transitions = defaultdict(Counter)
         self.composers_transitions = {}
-        self.rhythm_transitions = defaultdict(Counter)
         self.phrase_beginnings = []  # store phrase starting points
         self.phrase_endings = []     # store phrase ending points
         self.theory = MusicTheory()  # ingrain theory into model
@@ -42,17 +41,6 @@ class MarkovModel:
                 state = tuple(sequence[i:i + self.order])
                 next_note = sequence[i + self.order] # get the next note
                 self.transitions[state][next_note] += 1 # update transition count
-                
-                # extract rhythmic patterns
-                if i > 0:
-                    intervals = []
-                    for j in range(1, len(state)):
-                        intervals.append(state[j] - state[j-1])
-                    
-                    # record the interval patterns
-                    interval_state = tuple(intervals)
-                    next_interval = next_note - state[-1]
-                    self.rhythm_transitions[interval_state][next_interval] += 1
     
     def generate_melody(self, key, scale_type, melody_length=32, phrase_length=4):
         """
@@ -92,19 +80,6 @@ class MarkovModel:
             if phrase_position >= phrase_length:
                 current_phrase += 1
                 phrase_start_idx = len(melody) - self.order
-                
-                # use a good melodic transition between phrases if available
-                if self.phrase_beginnings and random.random() < 0.7:  # 70% chance to use phrase transitions
-                    closest_beginning = min(self.phrase_beginnings, 
-                                        key=lambda x: sum(abs(a-b) for a, b in zip(x, state)))
-                    
-                    # If it's a reasonable transition, use it
-                    if sum(abs(a-b) for a, b in zip(closest_beginning, state)) < 20:
-                        for note in closest_beginning:
-                            # Ensure the note is in our key
-                            adjusted_note = self.theory.get_nearest_scale_note(note, key, scale_type)
-                            melody.append(adjusted_note)
-                            durations.append(480)  # uarquarteter note for each transition note
             
             next_note = None # Markov logic
             
@@ -114,33 +89,29 @@ class MarkovModel:
                 choices, weights = zip(*self.transitions[state].items())
                 total_weight = sum(weights)
                 if total_weight > 0: # valid transitions
-                    
                     probs = [w / total_weight for w in weights] # normalize weights
-                    
-                    while True: # keep trying until note in scale
+                    attempts = 0
+                    max_attempts = 10
+                    while attempts < max_attempts: # keep trying until note in scale
                         candidate_note = random.choices(choices, weights=probs, k=1)[0]
                         if self.theory.is_in_key(candidate_note, key, scale_type):
                             next_note = candidate_note
                             break
+                        attempts += 1
             
             if next_note is None: # next note can't be none
                 # End of phrase or on chord change - prefer using chord tones
                 if phrase_position % notes_per_chord == 0 or phrase_position == phrase_length - 1:
                     next_note = random.choice(chord_notes)
                 else:
-                    # use a scale note with preference for smoother voice leading
-                    last_note = melody[-1]
-                    # find scale notes that are close to the last note
-                    close_notes = [n for n in scale_notes if 0 < abs(n - last_note) <= 5]
-                    
+                    last_note = melody[-1] # use a scale note with preference for smoother voice leading
+                    close_notes = [n for n in scale_notes if 0 < abs(n - last_note) <= 5] # find scale notes that are close to the last note
                     if close_notes:
                         next_note = random.choice(close_notes)
                     else:
                         next_note = random.choice(scale_notes)
             
-            # add the next note to the melody
-            melody.append(next_note)
-            durations.append(480)  # quarter note duration
+            melody.append(next_note) # add the next note to the melody
+            durations.append(480) # quarter note duration for simplicity
 
-        # trim to specific length
-        return melody[self.order: self.order + melody_length], durations[: melody_length]
+        return melody[self.order: self.order + melody_length], durations[: melody_length] # trim to specific length

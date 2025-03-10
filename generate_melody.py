@@ -2,7 +2,6 @@ import os
 
 from utils import *
 from model import *
-from pca import *
 
 def generate_melody(key_name, scale_type):
     """
@@ -54,6 +53,12 @@ model.train(all_note_sequences, phrase_length=8)
 
 # see actual Markov transition matrix
 # visualize_transition_matrix(model, "transition_matrix.png")
+
+# run PCA
+# pca_analyzer = PCAAnalyzer(n_components=2)
+# composer_matrices = pca_analyzer.create_transition_matrix(model, all_sequences)
+# pca_results = pca_analyzer.fit_transform(composer_matrices)
+# pca_analyzer.plot_pca_results(pca_results) 
 
 # generate melodies based on a key and mode
 generate_melody('E', 'major')
