@@ -34,7 +34,7 @@ class MarkovModel:
             # train the Markov chain
             for i in range(len(sequence) - self.order):
                 # create a tuple of the current state (previous notes)
-                state = tuple(sequence[i:i + self.order])
+                state = tuple(sequence[i: i + self.order])
                 next_note = sequence[i + self.order] # get the next note
                 self.transitions[state][next_note] += 1 # update transition count
     
