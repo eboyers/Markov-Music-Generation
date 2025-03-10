@@ -65,47 +65,44 @@ class MarkovModel:
     
     def generate_melody(self, key, scale_type, melody_length=32, phrase_length=4):
         """
-        Generate a melody using Markov chain transitions, respecting musical structure and theory.
+        Generate melody using Markov chain transitions, respecting musical structure and theory.
         """
         scale_notes = self.theory.get_scale_notes(key, scale_type)
         chord_progression = self.theory.generate_chord_progression(scale_type)
         notes_per_chord = phrase_length // len(chord_progression)
         
-        # Use chord tones from the first chord in the progression for initialization
+        # use chord tones from the first chord in the progression for initialization
         start_notes = self.theory.get_chord_notes(key, chord_progression[0], scale_type)
-        # If we need more notes to match the order, add more from the scale
-        while len(start_notes) < self.order:
+        while len(start_notes) < self.order: # pad with more notes from scale if necessary
             start_notes.append(random.choice(scale_notes))
         
-        start_notes = start_notes[:self.order]  # Trim to match order
-        melody = start_notes.copy()  # Initialize melody with start notes
+        start_notes = start_notes[:self.order]  # trim to match order
+        melody = start_notes.copy()  # init melody with start notes
         
-        # Initialize durations - all quarter notes (480 ticks)
-        durations = [480] * self.order
+        durations = [480] * self.order # durations of each note in melody, all quarter for simplicity
         
-        # Generate the melody phrase by phrase
+        # make melody phrase by phrase
         current_phrase = 0
         phrase_start_idx = 0
         
         while len(melody) < melody_length + self.order:
-            # Determine which chord we're on within the current phrase
+            # determine which chord we're on within the current phrase
             phrase_position = (len(melody) - self.order - phrase_start_idx) 
             chord_index = (phrase_position // notes_per_chord) % len(chord_progression)
             current_chord = chord_progression[chord_index]
             
-            # Get chord tones for the current chord
+            # get chord tones for the current chord
             chord_notes = self.theory.get_chord_notes(key, current_chord, scale_type)
             
-            # Get the current state
+            # get the current state
             state = tuple(melody[-self.order:])
             
-            # Check if we should start a new phrase
+            # check if we should start a new phrase
             if phrase_position >= phrase_length:
-                # Start a new phrase
                 current_phrase += 1
                 phrase_start_idx = len(melody) - self.order
                 
-                # Use a good melodic transition between phrases if available
+                # use a good melodic transition between phrases if available
                 if self.phrase_beginnings and random.random() < 0.7:  # 70% chance to use phrase transitions
                     closest_beginning = min(self.phrase_beginnings, 
                                         key=lambda x: sum(abs(a-b) for a, b in zip(x, state)))
@@ -116,32 +113,27 @@ class MarkovModel:
                             # Ensure the note is in our key
                             adjusted_note = self.theory.get_nearest_scale_note(note, key, scale_type)
                             melody.append(adjusted_note)
-                            durations.append(480)  # Quarter note for each transition note
-                        
-                        # Skip to next iteration
-                        continue
+                            durations.append(480)  # uarquarteter note for each transition note
             
-            # PRIMARY MARKOV GENERATION LOGIC
-            next_note = None
+            next_note = None # Markov logic
             
-            # First priority: Use the Markov model transition probabilities
+            # use the Markov model transition probabilities
             if state in self.transitions and self.transitions[state]:
-                # Convert Counter to probability distribution
+                # convert Counter to probability distribution
                 choices, weights = zip(*self.transitions[state].items())
                 total_weight = sum(weights)
-                if total_weight > 0:  # Make sure we have valid transitions
-                    # Normalize weights to probabilities
-                    probs = [w/total_weight for w in weights]
-                    # Sample from the distribution
-                    next_note = random.choices(choices, weights=probs, k=1)[0]
+                if total_weight > 0: # valid transitions
+                    # normalize weights
+                    probs = [w / total_weight for w in weights]
                     
-                    # If the note is far outside our scale, adjust it
-                    if not self.theory.is_in_key(next_note, key, scale_type):
-                        # 70% chance to adjust to nearest scale note
-                        if random.random() < 0.7:
-                            next_note = self.theory.get_nearest_scale_note(next_note, key, scale_type)
+                    # keep trying until note in scale
+                    while True:
+                        candidate_note = random.choices(choices, weights=probs, k=1)[0]
+                        if self.theory.is_in_key(candidate_note, key, scale_type):
+                            next_note = candidate_note
+                            break
             
-            # Second priority: Use rhythm-based transitions if note-based failed
+            # usee rhythm-based transitions if note-based failed
             if next_note is None and len(state) > 1:
                 # Extract intervals from current state
                 intervals = [state[i] - state[i-1] for i in range(1, len(state))]

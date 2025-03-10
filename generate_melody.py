@@ -49,11 +49,11 @@ all_note_sequences = []
 for composer_sequences in all_sequences.values():
     all_note_sequences.extend(list(composer_sequences.values()))
 
-# train our model
+# train the model
 model.train(all_note_sequences, phrase_length=8)
 
 # see actual Markov transition matrix
-visualize_transition_matrix(model, "transition_matrix.png")
+# visualize_transition_matrix(model, "transition_matrix.png")
 
 # generate melodies based on a key and mode
 generate_melody('F', 'major')
