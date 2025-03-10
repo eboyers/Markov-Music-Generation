@@ -1,13 +1,13 @@
 import os
 import mido
 import numpy as np
-import seaborn as sns
 import matplotlib.pyplot as plt
 
 from collections import Counter, defaultdict
 from mido import MidiFile, MidiTrack, Message
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
+
 class MIDIProcessor:
     def __init__(self):
         """Class to extract note sequences from MIDI files."""
@@ -242,14 +242,17 @@ def visualize_transition_matrix(model, output_filename, max_notes=40):
     note_names = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
     labels = [f"{note} ({note_names[note % 12]}{note // 12})" for note in all_notes]
     
-    # make the heatmap
-    plt.figure(figsize=(12, 10))
-    sns.heatmap(matrix, cmap='Blues', xticklabels=labels, yticklabels=labels)
-    
-    plt.title(f"Markov Transition Matrix (Order = {model.order})", fontsize=16)
-    plt.xlabel("Next Note", fontsize=14)
-    plt.ylabel("Current Note", fontsize=14)
-    plt.xticks(rotation=90)
-    plt.yticks(rotation=0)
+    # plot the heatmap
+    fig, ax = plt.subplots(figsize=(12, 10))
+    cax = ax.imshow(matrix, cmap='Blues', aspect='auto')
+    cbar = fig.colorbar(cax)
+    cbar.set_label("Transition Probability", fontsize=14)
+    ax.set_title(f"Markov Transition Matrix (Order = {model.order})", fontsize=16)
+    ax.set_xlabel("Next Note", fontsize=14)
+    ax.set_ylabel("Current Note", fontsize=14)
+    ax.set_xticks(np.arange(len(labels)))
+    ax.set_yticks(np.arange(len(labels)))
+    ax.set_xticklabels(labels, rotation=90)
+    ax.set_yticklabels(labels)
     plt.tight_layout()
     plt.savefig(output_filename, dpi=300, bbox_inches='tight')

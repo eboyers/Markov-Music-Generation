@@ -44,9 +44,8 @@ all_sequences = processor.get_all_note_sequences()
 model = MarkovModel(order=5) # model of order 5 to inform decisions based on previous 5 notes
 all_note_sequences = []
 
-# combine all note sequences for training
 for composer_sequences in all_sequences.values():
-    all_note_sequences.extend(list(composer_sequences.values()))
+    all_note_sequences.extend(list(composer_sequences.values())) # combine all note sequences for training
 
 # train the model
 model.train(all_note_sequences, phrase_length=8)
@@ -60,6 +59,6 @@ model.train(all_note_sequences, phrase_length=8)
 # pca_results = pca_analyzer.fit_transform(composer_matrices)
 # pca_analyzer.plot_pca_results(pca_results) 
 
-# generate melodies based on a key and mode
+# generate melodies based on a key and mode; example use
 generate_melody('E', 'major')
 generate_melody('A', 'harmonic_minor')

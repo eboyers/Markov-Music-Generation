@@ -5,15 +5,11 @@ from theory import MusicTheory
 
 class MarkovModel:    
     def __init__(self, order):
-        """
-        Initialize Markov Chain model; order of the Markov chain is how many 
-        previous notes to consider.
-        """
+        """Initialize Markov Chain model; order of the Markov chain is how many previous notes to consider."""
         self.order = order
         self.transitions = defaultdict(Counter)
         self.composers_transitions = {}
-        self.phrase_beginnings = []  # store phrase starting points
-        self.phrase_endings = []     # store phrase ending points
+        self.phrase_beginnings = self.phrase_endings = []  # store phrase starting/ending points
         self.theory = MusicTheory()  # ingrain theory into model
         
     def train(self, note_sequences, phrase_length):
@@ -43,9 +39,7 @@ class MarkovModel:
                 self.transitions[state][next_note] += 1 # update transition count
     
     def generate_melody(self, key, scale_type, melody_length=32, phrase_length=4):
-        """
-        Generate melody using Markov chain transitions, respecting musical structure and theory.
-        """
+        """Generate melody using Markov chain transitions, respecting musical structure and theory."""
         scale_notes = self.theory.get_scale_notes(key, scale_type)
         chord_progression = self.theory.generate_chord_progression(scale_type)
         notes_per_chord = phrase_length // len(chord_progression)
