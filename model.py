@@ -133,45 +133,9 @@ class MarkovModel:
                             next_note = candidate_note
                             break
             
-            # usee rhythm-based transitions if note-based failed
-            if next_note is None and len(state) > 1:
-                # Extract intervals from current state
-                intervals = [state[i] - state[i-1] for i in range(1, len(state))]
-                interval_state = tuple(intervals)
-                
-                if interval_state in self.rhythm_transitions and self.rhythm_transitions[interval_state]:
-                    # Get the interval probabilities
-                    interval_choices, interval_weights = zip(*self.rhythm_transitions[interval_state].items())
-                    # Select next interval using Markov probabilities
-                    next_interval = random.choices(interval_choices, weights=interval_weights, k=1)[0]
-                    # Calculate the next note from the last note and the interval
-                    candidate_note = state[-1] + next_interval
-                    
-                    # Adjust to stay in key if needed
-                    if self.theory.is_in_key(candidate_note, key, scale_type):
-                        next_note = candidate_note
-                    else:
-                        next_note = self.theory.get_nearest_scale_note(candidate_note, key, scale_type)
-            
-            # Third priority: Theory-based fallback for musical coherence
-            if next_note is None:
-                # End of phrase or on chord change - prefer using chord tones
-                if phrase_position % notes_per_chord == 0 or phrase_position == phrase_length - 1:
-                    next_note = random.choice(chord_notes)
-                else:
-                    # Use a scale note with preference for smoother voice leading
-                    last_note = melody[-1]
-                    # Find scale notes that are close to the last note
-                    close_notes = [n for n in scale_notes if 0 < abs(n - last_note) <= 5]
-                    
-                    if close_notes:
-                        next_note = random.choice(close_notes)
-                    else:
-                        next_note = random.choice(scale_notes)
-            
-            # Add the next note to the melody
+            # add next note to the melody
             melody.append(next_note)
-            durations.append(480)  # Quarter note duration
+            durations.append(480)  # quarter note duration
         
-        # Trim to requested length
+        # trim to required length
         return melody[self.order:self.order+melody_length], durations[:melody_length]
