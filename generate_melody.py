@@ -42,7 +42,7 @@ processor = MIDIProcessor()
 
 all_sequences = processor.get_all_note_sequences()
 
-model = MarkovModel(order=10) # model of order 10 to inform decisions based on previous 10 notes
+model = MarkovModel(order=5) # model of order 5 to inform decisions based on previous 5 notes
 all_note_sequences = []
 
 # combine all note sequences for training
@@ -56,5 +56,5 @@ model.train(all_note_sequences, phrase_length=8)
 # visualize_transition_matrix(model, "transition_matrix.png")
 
 # generate melodies based on a key and mode
-generate_melody('F', 'major')
-generate_melody('C', 'harmonic_minor')
+generate_melody('E', 'major')
+generate_melody('A', 'harmonic_minor')

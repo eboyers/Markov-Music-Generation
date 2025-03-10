@@ -5,7 +5,6 @@ from collections import Counter, defaultdict
 
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
-
 class PCAAnalyzer:
     def __init__(self, n_components=2):
         """

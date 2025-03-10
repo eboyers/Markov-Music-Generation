@@ -4,7 +4,7 @@ from collections import defaultdict, Counter
 from theory import MusicTheory
 
 class MarkovModel:    
-    def __init__(self, order=5):
+    def __init__(self, order):
         """
         Initialize Markov Chain model; order of the Markov chain is how many 
         previous notes to consider.
@@ -53,15 +53,6 @@ class MarkovModel:
                     interval_state = tuple(intervals)
                     next_interval = next_note - state[-1]
                     self.rhythm_transitions[interval_state][next_interval] += 1
-    
-    def train_by_composer(self, all_sequences):
-        """
-        Train separate Markov models for each composer.
-        """
-        for composer, sequences in all_sequences.items():
-            composer_model = MarkovModel(self.order)
-            composer_model.train(list(sequences.values()))
-            self.composers_transitions[composer] = composer_model.transitions
     
     def generate_melody(self, key, scale_type, melody_length=32, phrase_length=4):
         """
@@ -123,19 +114,33 @@ class MarkovModel:
                 choices, weights = zip(*self.transitions[state].items())
                 total_weight = sum(weights)
                 if total_weight > 0: # valid transitions
-                    # normalize weights
-                    probs = [w / total_weight for w in weights]
                     
-                    # keep trying until note in scale
-                    while True:
+                    probs = [w / total_weight for w in weights] # normalize weights
+                    
+                    while True: # keep trying until note in scale
                         candidate_note = random.choices(choices, weights=probs, k=1)[0]
                         if self.theory.is_in_key(candidate_note, key, scale_type):
                             next_note = candidate_note
                             break
             
-            # add next note to the melody
+            if next_note is None: # next note can't be none
+                # End of phrase or on chord change - prefer using chord tones
+                if phrase_position % notes_per_chord == 0 or phrase_position == phrase_length - 1:
+                    next_note = random.choice(chord_notes)
+                else:
+                    # use a scale note with preference for smoother voice leading
+                    last_note = melody[-1]
+                    # find scale notes that are close to the last note
+                    close_notes = [n for n in scale_notes if 0 < abs(n - last_note) <= 5]
+                    
+                    if close_notes:
+                        next_note = random.choice(close_notes)
+                    else:
+                        next_note = random.choice(scale_notes)
+            
+            # add the next note to the melody
             melody.append(next_note)
             durations.append(480)  # quarter note duration
-        
-        # trim to required length
-        return melody[self.order:self.order+melody_length], durations[:melody_length]
+
+        # trim to specific length
+        return melody[self.order: self.order + melody_length], durations[: melody_length]
