@@ -34,7 +34,7 @@ KEYS = {
     'Ab': 68, 'A': 69, 'A#': 70, 'Bb': 70, 'B': 71
 }
 
-output_dir = "new2"
+output_dir = "melodies"
 os.makedirs(output_dir, exist_ok=True)
 
 processor = MIDIProcessor()
@@ -60,5 +60,5 @@ model.train(all_note_sequences, phrase_length=8)
 # pca_analyzer.plot_pca_results(pca_results) 
 
 # generate melodies based on a key and mode; example use
-generate_melody('E', 'major')
-generate_melody('A', 'harmonic_minor')
+# generate_melody('E', 'major')
+# generate_melody('A', 'harmonic_minor')
