@@ -51,8 +51,7 @@ class MarkovModel:
         
         durations = [480] * self.order # durations of each note in melody, all quarter for simplicity
         
-        current_phrase = 0 # create melody phrase by phrase
-        phrase_start_idx = 0
+        current_phrase = phrase_start_idx = 0 # create melody phrase by phrase
         
         while len(melody) < melody_length + self.order:
             # determine which chord we're on within the current phrase
@@ -61,7 +60,6 @@ class MarkovModel:
             current_chord = chord_progression[chord_index]
             
             chord_notes = self.theory.get_chord_notes(key, current_chord, scale_type) # get chord tones for the current chord
-            
             state = tuple(melody[-self.order:]) # get the current state
             
             # check if we should start a new phrase
