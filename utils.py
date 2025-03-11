@@ -12,11 +12,7 @@ class MIDIProcessor:
     def __init__(self):
         """Class to extract note sequences from MIDI files."""
         self.midi_dir = "classical_midis"
-        self.composers = self._get_composers()
-        
-    def _get_composers(self):
-        """Get list of composers from directory structure"""
-        return [d for d in os.listdir(self.midi_dir) if os.path.isdir(os.path.join(self.midi_dir, d))]
+        self.composers = [d for d in os.listdir(self.midi_dir) if os.path.isdir(os.path.join(self.midi_dir, d))]
     
     def extract_notes(self, midi_file_path):
         """Extract a sequence of notes from a MIDI file."""
@@ -42,50 +38,38 @@ class MIDIProcessor:
     
     def get_all_note_sequences(self):
         """Get note sequences for all composers."""
-        all_sequences = {}
-        for composer in self.composers:
-            all_sequences[composer] = self.get_composer_note_sequences(composer)
+        all_sequences = {composer: self.get_composer_note_sequences(composer) for composer in self.composers}
         return all_sequences
 
     def create_midi(self, notes, durations, output_file, tempo=500000):
         """Create a minimal MIDI file from note/duration pairs."""
-        # create new MIDI file and track
-        mid = MidiFile()
+        mid = MidiFile() # create new MIDI file and track
         track = MidiTrack()
         mid.tracks.append(track)
         
-        # set instrument to piano
-        track.append(Message('program_change', program=0, time=0))
+        track.append(Message('program_change', program=0, time=0)) # set instrument to piano
         
-        # set tempo meta-message
-        tempo_msg = mido.MetaMessage('set_tempo', tempo=tempo)
+        tempo_msg = mido.MetaMessage('set_tempo', tempo=tempo) # set tempo meta-message
         track.append(tempo_msg)
         
         current_time = 0
         timeline = []
-        
-        # build timeline of note_on and note_off events
-        for note, duration in zip(notes, durations):
-            if duration < 0:
-                # negative duration is a rest: just advance the time
+
+        for note, duration in zip(notes, durations): # build timeline of note_on and note_off events
+            if duration < 0: # negative duration is a rest: just advance the time
                 current_time += abs(duration)
-            else:
-                # schedule note_on at the current_time
+            else: # schedule note_on at the current_time
                 timeline.append((current_time, 'note_on', note, 64))
                 
-                # schedule note_off after 'duration' ticks
-                end_time = current_time + duration
+                end_time = current_time + duration # schedule note_off after 'duration' ticks
                 timeline.append((end_time, 'note_off', note, 0))
                 
-                # advance current_time by this duration
-                current_time += duration
+                current_time += duration # advance current_time by this duration
         
-        # sort events by time
-        timeline.sort(key=lambda x: x[0])
+        timeline.sort(key=lambda x: x[0]) # sort events by time
         
         last_time = 0
-        # convert timeline into MIDI messages
-        for event in timeline:
+        for event in timeline: # convert timeline into MIDI messages
             event_time, event_type, note, velocity = event
             delta = event_time - last_time  # time since last event
             
@@ -115,7 +99,6 @@ class PCAAnalyzer:
         
         all_possible_notes = sorted(list(all_possible_notes))
         note_to_idx = {note: i for i, note in enumerate(all_possible_notes)}
-        
         composer_matrices = {}
         
         for composer, sequences in composer_sequences.items():
@@ -152,7 +135,6 @@ class PCAAnalyzer:
         
     def fit_transform(self, transition_matrices):
         """Apply PCA to transition matrices and return dictionary mapping composers to their PCA-transformed coordinates."""
-
         matrix_vectors = []
         composers = []
         
@@ -171,12 +153,10 @@ class PCAAnalyzer:
         """Plot PCA results with one point per composer."""
         plt.figure(figsize=(12, 10))
         
-        # Assign a distinct color to each composer
         unique_composers = list(pca_results.keys())
         colors = plt.cm.tab20(np.linspace(0, 1, len(unique_composers)))
         color_map = {composer: colors[i] for i, composer in enumerate(unique_composers)}
         
-        # Plot each composer as a single point
         for composer, coords in pca_results.items():
             plt.scatter(coords[0], coords[1], label=composer, color=color_map[composer], s=100)
             plt.text(coords[0]+0.1, coords[1]+0.1, composer, fontsize=9)
@@ -190,34 +170,28 @@ class PCAAnalyzer:
 
 def visualize_transition_matrix(model, output_filename, max_notes=40):
     """Visualize the Markov transition matrix and save as PNG."""
-    # first, collect all unique notes
-    all_notes = set()
+    all_notes = set() # first, collect all unique notes
     for state in model.transitions.keys():
         all_notes.add(state[-1]) # last note in the state
         all_notes.update(model.transitions[state].keys())
     
     all_notes = sorted(list(all_notes))
     
-    # limit to max_notes most common notes for readability
-    if len(all_notes) > max_notes:
-        # count frequency of each note
-        note_counts = Counter()
+    if len(all_notes) > max_notes: # limit to max_notes most common notes for readability
+        note_counts = Counter() # count frequency of each note
         for state, transitions in model.transitions.items():
             note_counts[state[-1]] += sum(transitions.values())
             for note, count in transitions.items():
                 note_counts[note] += count
         
-        # keep only the most common notes
-        all_notes = [note for note, _ in note_counts.most_common(max_notes)]
+        all_notes = [note for note, _ in note_counts.most_common(max_notes)] # keep only the most common notes
         all_notes.sort()
     
     matrix = np.zeros((len(all_notes), len(all_notes))) # empty n x n matrix
     
-    # mapping from note to index
-    note_to_idx = {note: i for i, note in enumerate(all_notes)}
+    note_to_idx = {note: i for i, note in enumerate(all_notes)} # mapping from note to index
     
-    # aggregate transitions by last note in state
-    aggregated_transitions = defaultdict(Counter)
+    aggregated_transitions = defaultdict(Counter) # aggregate transitions by last note in state
     
     for state, transitions in model.transitions.items():
         last_note = state[-1]
@@ -225,9 +199,8 @@ def visualize_transition_matrix(model, output_filename, max_notes=40):
             for next_note, count in transitions.items():
                 if next_note in note_to_idx: 
                     aggregated_transitions[last_note][next_note] += count
-    
-    # fill the matrix with probabilities
-    for from_note, transitions in aggregated_transitions.items():
+
+    for from_note, transitions in aggregated_transitions.items(): # fill the matrix with probabilities
         from_idx = note_to_idx[from_note]
         total = sum(transitions.values())
         

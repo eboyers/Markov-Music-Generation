@@ -25,11 +25,8 @@ class MarkovModel:
             # extract phrase beginnings and endings
             for i in range(0, len(sequence) - phrase_length, phrase_length):
                 if i > 0:
-                    # this is a good place for a phrase ending
-                    self.phrase_endings.append(tuple(sequence[i - self.order: i]))
-                    
-                # this is a good place for beginning a phrase
-                self.phrase_beginnings.append(tuple(sequence[i: i + self.order]))
+                    self.phrase_endings.append(tuple(sequence[i - self.order: i])) # this is a good place for a phrase ending
+                self.phrase_beginnings.append(tuple(sequence[i: i + self.order])) # this is a good place for beginning a phrase
                 
             # train the Markov chain
             for i in range(len(sequence) - self.order):
@@ -49,13 +46,12 @@ class MarkovModel:
         while len(start_notes) < self.order: # pad with more notes from scale if necessary
             start_notes.append(random.choice(scale_notes))
         
-        start_notes = start_notes[:self.order]  # trim to match order
-        melody = start_notes.copy()  # init melody with start notes
+        start_notes = start_notes[:self.order] # trim to match order
+        melody = start_notes.copy() # init melody with start notes
         
         durations = [480] * self.order # durations of each note in melody, all quarter for simplicity
         
-        # make melody phrase by phrase
-        current_phrase = 0
+        current_phrase = 0 # create melody phrase by phrase
         phrase_start_idx = 0
         
         while len(melody) < melody_length + self.order:
@@ -64,11 +60,9 @@ class MarkovModel:
             chord_index = (phrase_position // notes_per_chord) % len(chord_progression)
             current_chord = chord_progression[chord_index]
             
-            # get chord tones for the current chord
-            chord_notes = self.theory.get_chord_notes(key, current_chord, scale_type)
+            chord_notes = self.theory.get_chord_notes(key, current_chord, scale_type) # get chord tones for the current chord
             
-            # get the current state
-            state = tuple(melody[-self.order:])
+            state = tuple(melody[-self.order:]) # get the current state
             
             # check if we should start a new phrase
             if phrase_position >= phrase_length:
@@ -94,7 +88,7 @@ class MarkovModel:
                         attempts += 1
             
             if next_note is None: # next note can't be none
-                # End of phrase or on chord change - prefer using chord tones
+                # end of phrase or on chord change - prefer using chord tones
                 if phrase_position % notes_per_chord == 0 or phrase_position == phrase_length - 1:
                     next_note = random.choice(chord_notes)
                 else:
