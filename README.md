@@ -1,1 +1,1 @@
-# Markov-Music-Generation
+# Markov Chains for Probabilistic Music Generation
