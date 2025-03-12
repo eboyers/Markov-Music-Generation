@@ -13,7 +13,7 @@ def generate_melody(key_name, scale_type):
     melody, durations = model.generate_melody(
         key=key,
         scale_type=scale_type,
-        phrase_length=16,  # Longer phrases for more cohesive melodies
+        phrase_length=16, # Longer phrases for more cohesive melodies
     )
     
     output_filename = f"{key_name}_{scale_type}.mid"

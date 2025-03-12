@@ -4,20 +4,20 @@ SCALES = { # scales as semitones up from root
         'major': [0, 2, 4, 5, 7, 9, 11],
         'natural_minor': [0, 2, 3, 5, 7, 8, 10],
         'harmonic_minor': [0, 2, 3, 5, 7, 8, 11],
-        'melodic_minor': [0, 2, 3, 5, 7, 9, 11],  # ascending melodic minor
+        'melodic_minor': [0, 2, 3, 5, 7, 9, 11], # ascending melodic minor
     }
     
 PROGRESSIONS = { # common chord progressions (as scale degrees)
-    'major': [[1, 4, 5, 1],  # I-IV-V-I
-              [1, 6, 4, 5],  # I-vi-IV-V
-              [1, 4, 6, 5],  # I-IV-vi-V
-              [6, 2, 5, 1],  # vi-ii-V-I
-              [1, 5, 6, 4]],  # I-V-vi-IV
-    'minor': [[1, 4, 5, 1],  # i-iv-v-i
-              [1, 6, 3, 7],  # i-VI-III-VII
-              [1, 7, 6, 5],  # i-VII-VI-v
-              [1, 4, 7, 3],  # i-iv-VII-III
-              [6, 7, 3, 5]]  # VI-VII-III-v
+    'major': [[1, 4, 5, 1], # I-IV-V-I
+              [1, 6, 4, 5], # I-vi-IV-V
+              [1, 4, 6, 5], # I-IV-vi-V
+              [6, 2, 5, 1], # vi-ii-V-I
+              [1, 5, 6, 4]], # I-V-vi-IV
+    'minor': [[1, 4, 5, 1], # i-iv-v-i
+              [1, 6, 3, 7], # i-VI-III-VII
+              [1, 7, 6, 5], # i-VII-VI-v
+              [1, 4, 7, 3], # i-iv-VII-III
+              [6, 7, 3, 5]] # VI-VII-III-v
             }
 
 class MusicTheory:
